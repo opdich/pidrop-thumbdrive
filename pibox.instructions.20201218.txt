@@ -1,0 +1,71 @@
+1. Flash OS
+	A. Version: Raspberry Pi OS Lite (Release: 2020-12-02)
+	
+2. Setup headless mode
+	A. At the bottom of config.txt, add:
+		dtoverlay=dwc2,dr_mode=peripheral
+	B. In cmdline.txt after rootwat add:
+		modules-load=dwc2,g_ether
+	C. Create file called:
+		ssh
+	D. [See if this works] Pre-load wpa_supplicant.conf
+	ref-01. https://gist.github.com/gbaman/975e2db164b3ca2b51ae11e45e8fd40a
+	ref-02. https://stackoverflow.com/questions/44053344/g-multi-mode-mass-storage-ethernet-not-working-on-raspberry-pi-zero-w
+
+3. [Optional] Setup wifi (good backup in case g_ether gets messed up)
+	A. SSH into the pi:
+		user: pi
+		pass: raspberry
+	B. Edit wpa_supplicant.conf:
+		sudo nano /etc/wpa_supplicant/wpa_supplicant.conf
+		a. Add:
+			country=US
+
+			network={
+					ssid="SSID"
+					psk="PASS"
+			}
+		b. Save + Close
+	C. Reboot:
+		sudo reboot
+	ref-01. https://www.youtube.com/watch?v=xj3MPmJhAPU&feature=youtu.be
+
+4. Create the container file
+	A. SSH into the pi
+	B. Create binary file:
+		sudo dd bs=1M if=/dev/zero of=/piusb.bin count=2048
+	C. Format FAT32:
+		sudo mkdosfs /piusb.bin -F 32 -I
+	D. Mount the file:
+		sudo mkdir /mnt/usb_share
+	E. Open fstab:
+		sudo nano /etc/fstab
+		a. Add to the end of fstab:
+			/piusb.bin /mnt/usb_share vfat users,umask=000 0 2
+		b. Save + Close
+	F. Reload fstab:
+		sudo mount -a
+	ref-01. https://magpi.raspberrypi.org/articles/pi-zero-w-smart-usb-flash-drive
+
+5. Setup g_multi
+	A. Open cmdline.txt:
+		sudo nano /boot/cmdline.txt
+		a. Change g_ether to g_multi
+		b. Save + Close
+	D. Create modprobe conf:
+		sudo nano /etc/modprobe.d/g_multi.conf
+		a. Add:
+			options g_multi file=/piusb.bin stall=0 ro=0 removable=1
+		b. Save + Close
+	F. Reboot:
+		sudo reboot
+	ref-01. https://stackoverflow.com/questions/44053344/g-multi-mode-mass-storage-ethernet-not-working-on-raspberry-pi-zero-w
+	ref-02. https://gist.github.com/gbaman/50b6cca61dd1c3f88f41#gistcomment-1822387
+
+6. Mounting as R/W in Windows
+	A. SSH into the pi
+	B. Unmount the partition:
+		sudo modprobe -r g_multi
+	C. Remount as g_mass_storage:
+		sudo modprobe g_mass_storage file=/piusb.bin stall=0 removable=1 ro=0
+	ref-01. https://raspberrypi.stackexchange.com/questions/79699/g-mass-storage-on-rpi-zerow-is-readonly-use-as-usb-stick
