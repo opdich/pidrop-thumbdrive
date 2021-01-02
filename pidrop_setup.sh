@@ -67,7 +67,7 @@ function downloadLibs
 	sudo pip3 install spidev
 	#Via git
 	sudo git clone https://github.com/andreafabrizi/Dropbox-Uploader.git
-	sudo git clone https://github.com/waveshare/e-Paper
+	# sudo git clone https://github.com/waveshare/e-Paper
 
 	echo "Libraries installed"
 }
@@ -110,8 +110,7 @@ function configureFiles
 
 	#Modify cmdline.txt
 	#Remove any module declaration (if it exists)
-	###TODO: remove all preceeding spaces
-	sudo sed -i 's/[[:blank:]]modules-load[[:alnum:]=,_]*//g' $CMDLINE
+	sudo sed -i 's/[[:blank:]]*modules-load[[:alnum:]=,_]*//g' $CMDLINE
 
 	#Set the modules-load to only dwc2
 	sudo sed -i '/rootwait/s/$/ modules-load=dwc2/g' $CMDLINE
@@ -119,13 +118,13 @@ function configureFiles
 	#Configure /etc/modules
 	sudo touch $MODULES
 	echo "dwc2" | sudo tee -a $MODULES >/dev/null
-	echo "g_multi" | sudo tee -a $MODULES >/dev/null
+	echo "g_mass_storage " | sudo tee -a $MODULES >/dev/null
 
 	#Setup rc.local
 	sudo sed -i '/exit 0/s/^/sleep 5\n/g' $RC
-	sudo sed -i '/exit 0/s,^,sudo modprobe g_multi file='"$PIDROP_BIN"' stall=0 removable=1 ro=0\n,g' $RC
+	sudo sed -i '/exit 0/s,^,sudo modprobe g_mass_storage  file='"$PIDROP_BIN"' stall=0 removable=1 ro=0\n,g' $RC
 	
-	echo "g_multi module configured"
+	echo "g_mass_storage module configured"
 }
 
 
