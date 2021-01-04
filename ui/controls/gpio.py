@@ -1,3 +1,4 @@
+import logging
 import RPi.GPIO as GPIO
 from rx3.subject import Subject
 from .io_codes import Code
@@ -10,8 +11,11 @@ io_lookup = [
 
 io_code = Subject()
 
+
 def gpio_callback(channel):
+    logging.debug(channel)
     io_code.on_next([io["code"] for io in io_lookup if io["pin"] == channel])
+
 
 def init():
     # Setup the GPIO
@@ -27,6 +31,6 @@ def init():
 
 def shutdown():
     # Clean up
-    print("Cleaning up the GPIO")
+    logging.info("Cleaning up the GPIO")
     GPIO.cleanup()
     io_code.on_completed()

@@ -1,31 +1,33 @@
 import display
 import controls
 import time
+import logging
 
-isInit = False
+logging.basicConfig(level=logging.INFO)
+
+is_init = False
 
 
 def init():
-    # display.init()
+    display.init()
 
     controls.io_code.subscribe(
-        on_next=lambda i: print("Received {0}".format(i)),
-        on_completed=lambda: print("Done!"),
+        on_next=lambda i: display.write(i[0].name),
     )
 
     # Loop to keep script running
-    global isInit
-    isInit = True
-    while isInit:
+    global is_init
+    is_init = True
+    while is_init:
         time.sleep(0.01)
 
     # Clean up
-    print("Shutting down PiDrop UI")
+    logging.info("Shutting down PiDrop UI")
 
 
 def shutdown():
-    global isInit
-    isInit = False
+    global is_init
+    is_init = False
 
 
 try:
@@ -33,5 +35,6 @@ try:
 
 except KeyboardInterrupt:
     shutdown()
+    display.shutdown()
     controls.shutdown()
     pass
